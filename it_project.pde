@@ -1,9 +1,12 @@
 import java.util.List;
 import java.util.ArrayList;
 
-//Global Field
+//Object
 Player Myplayer;
 List blockList;
+UI MyUI;
+
+//Global Field
 int blockNum=0;
 boolean isKeyPressed=false;
 static final float interval = 400;
@@ -14,6 +17,31 @@ Block temp;
 boolean isGameOver=false;
  //moving distance per draw
 float dist=1, updist=6;
+
+class UI{
+  private int score=0;
+  private float hp=100;
+  private float bar_width;
+  private final float bar_height=20;
+  
+  void HpDown(){
+    hp-=0.1;
+  }
+  void DisplayHpbar(){
+   //display hpbar
+   bar_width=500*hp/100;
+   fill(255,0,0);
+   rect(150,465,bar_width,bar_height);
+  }
+  void ScoreUp(){
+    score+=1;
+  }
+  void DisplayScore(){
+    fill(0);
+    textSize(30);    
+    text(Integer.toString(score),385,40);
+  }
+}
 
 class Player{
   //default position
@@ -80,6 +108,7 @@ void setup(){
   //make object and list
   Myplayer=new Player();
   blockList=new ArrayList<Block>();
+  MyUI=new UI();
 }
 
 void draw(){
@@ -92,6 +121,11 @@ void draw(){
   fill(255);
   rect(0,0,800,50);
   rect(0,450,800,50);
+  
+  //score display
+  MyUI.ScoreUp();
+  MyUI.DisplayScore();
+  MyUI.DisplayHpbar();
   
   //detect crash
   for(int i=0;i<blockNum;i++){
