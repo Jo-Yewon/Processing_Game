@@ -176,6 +176,7 @@ void draw(){
     //displayPlayer
     Myplayer.Display();
     
+    /*
     //get value from Arduino
     if ( myPort.available() > 0) {  // If data is available,
       val = myPort.readStringUntil('\n');  
@@ -186,5 +187,15 @@ void draw(){
         println("Exception occurred");
       }
     } 
+    */
+    
+    //temp code
+    if(isKeyPressed) isKeyPressed=false;
+    else Myplayer.MoveDown();
   }
+}
+
+void keyPressed(){
+  Myplayer.MoveUp();
+  isKeyPressed=true;
 }
