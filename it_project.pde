@@ -1,3 +1,4 @@
+import processing.serial.*;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -17,6 +18,11 @@ Block temp;
 boolean isGameOver=false;
  //moving distance per draw
 float dist=1, updist=6;
+float angle, jitter;
+Serial myPort;
+String val;
+int standard = 500;
+
 
 class UI{
   private int score=0;
@@ -26,6 +32,7 @@ class UI{
   
   void HpDown(){
     hp-=0.1;
+    if(hp<=0) isGameOver=true;
   }
   void DisplayHpbar(){
    //display hpbar
@@ -39,7 +46,7 @@ class UI{
   void DisplayScore(){
     fill(0);
     textSize(30);    
-    text(Integer.toString(score),385,40);
+    text(Integer.toString(score),380,40);
   }
 }
 
@@ -55,7 +62,6 @@ class Player{
     player_image=loadImage("airplane.png");
     y_position=200;
   }
-  
   void MoveUp(){
     if(y_position<=50) return;
     y_position-=updist;
@@ -97,8 +103,13 @@ class Block{
     return false;
   }
   boolean isCrash(){
-    //detect crash code
-    return false;
+    //detect on x-axis
+    if(x_position+block_wid<Myplayer.x_position 
+    || Myplayer.x_position+Myplayer.icon_width< x_position) return false;
+    //detect on y-axis
+    if(y_position>Myplayer.y_position+Myplayer.icon_width
+    || y_position+block_h<Myplayer.y_position) return false;
+    return true;
   }
 }
 
@@ -109,59 +120,82 @@ void setup(){
   Myplayer=new Player();
   blockList=new ArrayList<Block>();
   MyUI=new UI();
+  
+  //port
+  myPort = new Serial(this, "COM3", 9600);
 }
 
 void draw(){
-  speed+=speed_increase;
-  updist+=speed_increase;
+  if (isGameOver){
+    //display gameover screen
+    fill(0);
+    rect(0,0,800,500);
+    fill(255);
+    textSize(50);    
+    text("Game Over",280,270);
+  }
+  else{
+    speed+=speed_increase;
+    updist+=speed_increase;
   
-  //draw bg, black Up, Down Box
-  fill(0);
-  rect(0,0,800,500);
-  fill(255);
-  rect(0,0,800,50);
-  rect(0,450,800,50);
+    //draw bg, black Up, Down Box
+    fill(0);
+    rect(0,0,800,500);
+    fill(255);
+    rect(0,0,800,50);
+    rect(0,450,800,50);
   
-  //score display
-  MyUI.ScoreUp();
-  MyUI.DisplayScore();
-  MyUI.DisplayHpbar();
+    //score display
+    MyUI.ScoreUp();
+    MyUI.DisplayScore();
+    MyUI.DisplayHpbar();
   
-  //detect crash
-  for(int i=0;i<blockNum;i++){
-    temp=(Block)blockList.get(i);
-    if(temp.isCrash()){ //gameover
-      isGameOver=true;
-      return;
+    //detect crash
+    for(int i=0;i<blockNum;i++){
+      temp=(Block)blockList.get(i);
+      if(temp.isCrash()){
+        MyUI.HpDown();
+      }
+      temp.Move(); //move block to left
+      temp.Display();
     }
-    temp.Move(); //move block to left
-    temp.Display();
-  }
   
-  //detect OutScreen
-  if(blockNum!=0 && ((Block)blockList.get(0)).isOutScreen()){
-    blockList.remove(0);
-    blockNum--;
-  }
+    //detect OutScreen
+    if(blockNum!=0 && ((Block)blockList.get(0)).isOutScreen()){
+      blockList.remove(0);
+      blockNum--;
+    }
   
-  //Make New Block
-  interval_count+=speed;
-  if(interval_count>=interval){
-    println("make new Block");
-    blockList.add(new Block());
-    interval_count=0;
-    println("blockNum:"+blockNum);
-  }
+    //Make New Block
+    interval_count+=speed;
+    if(interval_count>=interval){
+      println("make new Block");
+      blockList.add(new Block());
+      interval_count=0;
+      println("blockNum:"+blockNum);
+    }
   
-  //displayPlayer
-  Myplayer.Display();
+    //displayPlayer
+    Myplayer.Display();
+    
+    //get value from Arduino
+    if ( myPort.available() > 0) {  // If data is available,
+      val = myPort.readStringUntil('\n');  
+      if(Integer.parseInt(val) >standard) Myplayer.MoveUp();
+      else Myplayer.MoveDown();
+    } 
   
-  //temp code
-  if(isKeyPressed) isKeyPressed=false;
-  else Myplayer.MoveDown();
+    /*
+    //temp code
+    if(isKeyPressed) isKeyPressed=false;
+    else Myplayer.MoveDown();
+    */
+    }
 }
 
+/*
 void keyPressed(){
   Myplayer.MoveUp();
   isKeyPressed=true;
 }
+*/
