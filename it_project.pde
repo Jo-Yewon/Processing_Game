@@ -21,7 +21,7 @@ float dist=1, updist=6;
 float angle, jitter;
 Serial myPort;
 String val;
-int standard = 500;
+int standard = 20;
 
 
 class UI{
@@ -169,10 +169,8 @@ void draw(){
     //Make New Block
     interval_count+=speed;
     if(interval_count>=interval){
-      println("make new Block");
       blockList.add(new Block());
       interval_count=0;
-      println("blockNum:"+blockNum);
     }
   
     //displayPlayer
@@ -181,21 +179,12 @@ void draw(){
     //get value from Arduino
     if ( myPort.available() > 0) {  // If data is available,
       val = myPort.readStringUntil('\n');  
-      if(Integer.parseInt(val) >standard) Myplayer.MoveUp();
-      else Myplayer.MoveDown();
+      try{
+        if(Integer.parseInt(val.substring(0,2)) > standard) Myplayer.MoveUp();
+        else Myplayer.MoveDown();
+      }catch(Exception e){
+        println("Exception occurred");
+      }
     } 
-  
-    /*
-    //temp code
-    if(isKeyPressed) isKeyPressed=false;
-    else Myplayer.MoveDown();
-    */
-    }
+  }
 }
-
-/*
-void keyPressed(){
-  Myplayer.MoveUp();
-  isKeyPressed=true;
-}
-*/
